@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_manager_with_getx/data/service/network_caller.dart';
 import 'package:task_manager_with_getx/data/urls.dart';
+import 'package:task_manager_with_getx/ui/controllers/reset_password_controller.dart';
 import 'package:task_manager_with_getx/ui/screens/sign_in_screen.dart';
 import 'package:task_manager_with_getx/ui/widgets/centered_circular_progress_indicator.dart';
 import 'package:task_manager_with_getx/ui/widgets/screen_background.dart';
 import 'package:task_manager_with_getx/ui/widgets/snack_bar_message.dart';
+import 'package:get/get.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -23,7 +25,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final TextEditingController _confirmPasswordTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  bool _resetPasswordLoading = false;
+  final ResetPasswordController _resetPasswordController = Get.find<ResetPasswordController>();
 
   @override
   Widget build(BuildContext context) {
@@ -81,13 +83,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  Visibility(
-                    visible: _resetPasswordLoading == false,
-                    replacement: CenteredCircularProgressIndicator(),
-                    child: ElevatedButton(
-                      onPressed: _onTapSubmitButton,
-                      child: Text('Confirm'),
-                    ),
+                  GetBuilder<ResetPasswordController>(
+                    builder: (controller) {
+                      return Visibility(
+                        visible: controller.inProgress == false,
+                        replacement: CenteredCircularProgressIndicator(),
+                        child: ElevatedButton(
+                          onPressed: _onTapSubmitButton,
+                          child: Text('Confirm'),
+                        ),
+                      );
+                    }
                   ),
 
                   const SizedBox(height: 32),
@@ -134,33 +140,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Future<void> _resetPassword() async {
-    _resetPasswordLoading = true;
-    setState(() {});
+    final bool isSuccess = await _resetPasswordController.resetPassword(_passwordTEController.text);
 
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String? Email = sharedPreferences.getString('email') ?? '';
-    String? Otp = sharedPreferences.getString('otp') ?? '';
-
-    Map<String, String> requestBody = {
-      "email": Email,
-      "OTP": Otp,
-      "password": _passwordTEController.text,
-    };
-
-    NetworkResponse response = await NetworkCaller.postRequest(
-        url: Urls.resetPasswordUrl, body: requestBody, isFromLogin: true
-    );
-
-    _resetPasswordLoading = false;
-    setState(() {});
-
-    if (response.isSuccess) {
+    if (isSuccess) {
       showSnackBarMessage(context, "Reset password has been successfully done! Please login again");
       Navigator.pushNamed(context, SignInScreen.name);
     } else {
-      _resetPasswordLoading = false;
-      setState(() {});
-      showSnackBarMessage(context, response.errorMessage!);
+      if(mounted){
+        showSnackBarMessage(context, _resetPasswordController.errorMessage!);
+      }
     }
   }
 
