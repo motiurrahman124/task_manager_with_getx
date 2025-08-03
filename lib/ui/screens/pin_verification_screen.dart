@@ -1,14 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:task_manager_with_getx/data/service/network_caller.dart';
-import 'package:task_manager_with_getx/data/urls.dart';
+import 'package:task_manager_with_getx/ui/controllers/verify_otp_controller.dart';
 import 'package:task_manager_with_getx/ui/screens/change_password_screen.dart';
 import 'package:task_manager_with_getx/ui/screens/sign_in_screen.dart';
 import 'package:task_manager_with_getx/ui/widgets/centered_circular_progress_indicator.dart';
 import 'package:task_manager_with_getx/ui/widgets/screen_background.dart';
 import 'package:task_manager_with_getx/ui/widgets/snack_bar_message.dart';
+import 'package:get/get.dart';
 
 class PinVerificationScreen extends StatefulWidget {
   const PinVerificationScreen({super.key});
@@ -24,7 +23,7 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
   final TextEditingController _otpTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  bool _otpVerifyLoading = false;
+  final VerifyOtpController _verifyOtpController = Get.find<VerifyOtpController>();
 
   @override
   Widget build(BuildContext context) {
@@ -75,13 +74,17 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
                     appContext: context,
                   ),
                   const SizedBox(height: 16),
-                  Visibility(
-                    visible: _otpVerifyLoading == false,
-                    replacement: CenteredCircularProgressIndicator(),
-                    child: ElevatedButton(
-                      onPressed: _onTapSubmitButton,
-                      child: Text('Verify'),
-                    ),
+                  GetBuilder<VerifyOtpController>(
+                    builder: (controller) {
+                      return Visibility(
+                        visible: controller.inProgress == false,
+                        replacement: CenteredCircularProgressIndicator(),
+                        child: ElevatedButton(
+                          onPressed: _onTapSubmitButton,
+                          child: Text('Verify'),
+                        ),
+                      );
+                    }
                   ),
 
                   const SizedBox(height: 32),
@@ -129,24 +132,15 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
   }
 
   Future<void> _verifyOtp() async {
-    _otpVerifyLoading = true;
-    setState(() {});
+    final bool isSuccess = await _verifyOtpController.verifyOtp(_otpTEController.text.trim());
 
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String? Email = sharedPreferences.getString('email') ?? '';
-
-    NetworkResponse response = await NetworkCaller.getRequest(
-        url: Urls.verifyOtpUrl(Email,_otpTEController.text.trim())
-    );
-
-    if (response.isSuccess) {
-      await sharedPreferences.setString('otp', _otpTEController.text.trim());
+    if (isSuccess) {
       showSnackBarMessage(context, "Your otp has been successfully verified");
       Navigator.pushNamed(context, ChangePasswordScreen.name);
     } else {
-      _otpVerifyLoading = false;
-      setState(() {});
-      showSnackBarMessage(context, response.errorMessage!);
+      if(mounted){
+        showSnackBarMessage(context, _verifyOtpController.errorMessage!);
+      }
     }
   }
 

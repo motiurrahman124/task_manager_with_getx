@@ -1,12 +1,7 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:task_manager_with_getx/data/models/user_model.dart';
-import 'package:task_manager_with_getx/data/service/network_caller.dart';
-import 'package:task_manager_with_getx/data/urls.dart';
 import 'package:task_manager_with_getx/ui/controllers/get_otp_controller.dart';
-import 'package:task_manager_with_getx/ui/screens/main_nav_bar_holder_screen.dart';
 import 'package:task_manager_with_getx/ui/screens/pin_verification_screen.dart';
 import 'package:task_manager_with_getx/ui/widgets/centered_circular_progress_indicator.dart';
 import 'package:task_manager_with_getx/ui/widgets/screen_background.dart';

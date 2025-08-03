@@ -6,6 +6,7 @@ import 'package:task_manager_with_getx/ui/controllers/new_task_list_controller.d
 import 'package:task_manager_with_getx/ui/controllers/progress_task_list_controller.dart';
 import 'package:task_manager_with_getx/ui/controllers/signin_controller.dart';
 import 'package:task_manager_with_getx/ui/controllers/signup_controller.dart';
+import 'package:task_manager_with_getx/ui/controllers/verify_otp_controller.dart';
 
 class ControllerBinder extends Bindings {
   @override
@@ -13,6 +14,7 @@ class ControllerBinder extends Bindings {
     Get.put(SignInController());
     Get.put(SignupController());
     Get.put(GetOtpController());
+    Get.put(VerifyOtpController());
     Get.put(NewTaskListController());
     Get.put(ProgressTaskListController());
     Get.put(CompletedTaskListController());
